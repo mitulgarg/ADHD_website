@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motion Detection</title>
+    <!-- Include SocketIO library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <h1>Motion Detection</h1>
+    
+    <img src="{{ url_for('video_feed') }}" width="640" height="480">
+
+    <div id="motion-time"></div>
+
+    <!-- SocketIO script to handle events -->
+    <script>
+        // Connect to the SocketIO server
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Listen for the 'motion_detected' event
+        socket.on('motion_detected', function(data) {
+            // Update the time on the webpage
+            document.getElementById('motion-time').innerHTML = 'Motion Detected at ' + data.time;
+        });
+    </script>
+</body>
+</html>
