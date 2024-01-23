@@ -5,26 +5,17 @@ import numpy as np
 from datetime import datetime
 
 app = Flask(__name__)
-app = Flask(__name__)
 socketio = SocketIO(app)
 video = cv2.VideoCapture(0)
+time_data = []  # Move time_data outside the generate_frames function
 
 @app.route('/')
-def home():
+def index():
     return render_template('index.html')
-
-@app.route('/camera')
-def camera():
-    return render_template('camera.html')
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
 
 def generate_frames():
     static_back = None
     motion_list = [None, None]
-    time = []
 
     while True:
         _, frame = video.read()
@@ -52,15 +43,13 @@ def generate_frames():
         motion_list.append(motion)
         motion_list = motion_list[-2:]
 
+        current_time = datetime.now()
+
         if motion_list[-1] == 1 and motion_list[-2] == 0:
-            current_time = datetime.now()
-            time.append(current_time)
-            socketio.emit('motion_detected', {'time': current_time.strftime('%H:%M:%S')})
+            time_data.append(current_time)
 
         if motion_list[-1] == 0 and motion_list[-2] == 1:
-            current_time = datetime.now()
-            time.append(current_time)
-            socketio.emit('motion_detected', {'time': current_time.strftime('%H:%M:%S')})
+            time_data.append(current_time)
 
         ret, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
@@ -71,7 +60,10 @@ def generate_frames():
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@socketio.on('generate_graph')
+def handle_generate_graph():
+    # Emit the time_data for graph generation
+    socketio.emit('motion_data', {'timestamps': [t.strftime('%H:%M:%S') for t in time_data]})
+
 if __name__ == "__main__":
     socketio.run(app, debug=True)
-
-
