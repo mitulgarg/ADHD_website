@@ -13,6 +13,16 @@ time_data = []  # Move time_data outside the generate_frames function
 def index():
     return render_template('index.html')
 
+@app.route('/camera')
+def camera():
+    return render_template('camera.html')
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
 def generate_frames():
     static_back = None
     motion_list = [None, None]
