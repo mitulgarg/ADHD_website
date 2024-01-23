@@ -5,12 +5,21 @@ import numpy as np
 from datetime import datetime
 
 app = Flask(__name__)
+app = Flask(__name__)
 socketio = SocketIO(app)
 video = cv2.VideoCapture(0)
 
 @app.route('/')
-def index():
+def home():
     return render_template('index.html')
+
+@app.route('/camera')
+def camera():
+    return render_template('camera.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 def generate_frames():
     static_back = None
@@ -64,3 +73,5 @@ def video_feed():
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
+
+
