@@ -24,4 +24,9 @@
             document.getElementById('motion-time').innerHTML = timeListString;
         });
     </script>
+
+    <!-- Add a link to the graph page -->
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('graph') }}" target="_blank">View Graph</a>
+    </div>
 {% endblock %}
