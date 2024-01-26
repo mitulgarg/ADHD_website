@@ -3,11 +3,15 @@ from flask_socketio import SocketIO
 import cv2
 import numpy as np
 from datetime import datetime
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from io import BytesIO
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 video = cv2.VideoCapture(0)
 time_list = []  # Store all motion timestamps
+diff_values = []  # Store absolute difference values
 
 @app.route('/')
 def home():
@@ -18,7 +22,7 @@ def camera():
     return render_template('camera.html')
 
 def generate_frames():
-    global time_list
+    global time_list, diff_values
 
     static_back = None
     motion_list = [None, None]
@@ -46,6 +50,10 @@ def generate_frames():
             (x, y, w, h) = cv2.boundingRect(contour)
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
+            # Calculate absolute difference value
+            diff_value = cv2.contourArea(contour)
+            diff_values.append(diff_value)
+
         motion_list.append(motion)
         motion_list = motion_list[-2:]
 
@@ -61,7 +69,22 @@ def generate_frames():
         frame = buffer.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+@app.route('/graph')
+def graph():
+    # Create a plot with timestamps on the x-axis and serial numbers on the y-axis
+    fig, ax = plt.subplots()
+    serial_numbers = list(range(1, len(time_list) + 1))
+    ax.plot(time_list, serial_numbers, marker='o', linestyle='-')
+    ax.set_xlabel('Timestamps during Motion Detection')
+    ax.set_ylabel('Serial Numbers')
 
+    # Convert the plot to an image
+    output = BytesIO()
+    FigureCanvas(fig).print_png(output)
+    plt.close(fig)
+
+    # Return the image as a response
+    return Response(output.getvalue(), mimetype='image/png')
 @app.route('/video_feed')
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
