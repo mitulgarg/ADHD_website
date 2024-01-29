@@ -1,0 +1,32 @@
+{% extends 'index.html' %}
+#added the graph
+{% block content %}
+    <h1>Camera App</h1>
+
+    <img src="{{ url_for('video_feed') }}" style="width: 30%; margin: 0 auto;">
+
+    <div id="motion-time" style="margin-top: 20px; font-size: 18px;"></div>
+
+    <!-- Include SocketIO library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+    <script>
+        // Connect to the SocketIO server
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+    
+        // Listen for the 'motion_detected' event
+        socket.on('motion_detected', function(data) {
+            // Update the time on the webpage
+            var timeListString = 'Motion Detected at: ';
+            for (var i = 0; i < data.time_list.length; i++) {
+                timeListString += data.time_list[i] + '<br>';
+            }
+            document.getElementById('motion-time').innerHTML = timeListString;
+        });
+    </script>
+
+    <!-- Add a link to the graph page -->
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('graph') }}" target="_blank">View Graph</a>
+    </div>
+{% endblock %}
