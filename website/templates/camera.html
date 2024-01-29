@@ -1,0 +1,54 @@
+{% extends 'index.html' %}
+
+{% block content %}
+    <h1>Camera App</h1>
+
+    <img src="{{ url_for('video_feed') }}" style="width: 30%; margin: 0 auto;">
+
+    <div id="motion-time" style="margin-top: 20px; font-size: 18px;"></div>
+
+    <button id="generate-graph">Generate Graph</button>
+    <div id="graph-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+    <script>
+        // Connect to the SocketIO server
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Listen for the 'motion_detected' event
+        socket.on('motion_detected', function(data) {
+            // Update the time on the webpage
+            var timeListString = 'Motion Detected at: ';
+            for (var i = 0; i < data.time_list.length; i++) {
+                timeListString += data.time_list[i] + '<br>';
+            }
+            document.getElementById('motion-time').innerHTML = timeListString;
+        });
+
+        // Add event listener to the generate graph button
+        document.getElementById('generate-graph').addEventListener('click', function() {
+            generateGraph();
+        });
+
+        function generateGraph() {
+            // Make a GET request to the 'graph' route
+            fetch('/graph')
+                .then(response => response.blob())
+                .then(blob => createImageFromBlob(blob))
+                .catch(error => console.error('Error fetching graph:', error));
+        }
+
+        function createImageFromBlob(blob) {
+            // Create a URL for the blob
+            const url = URL.createObjectURL(blob);
+
+            // Create an image element and set its source to the URL
+            const img = document.createElement('img');
+            img.src = url;
+
+            // Add the image to the graph container
+            document.getElementById('graph-container').appendChild(img);
+        }
+    </script>
+{% endblock %}
