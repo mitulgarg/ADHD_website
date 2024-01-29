@@ -22,6 +22,12 @@ def home():
 def camera():
     return render_template('camera.html')
 
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
 def generate_frames():
     global time_list, diff_values
 
